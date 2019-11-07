@@ -6,15 +6,28 @@ import SunnyIcon from "../resources/sunny_icon.svg";
 
 import "../style.css";
 
+var CLOUDY = "cloudy";
+var RAINY = "rainy";
+var SNOWY = "snowy";
+var SUNNY = "sunny";
+
+function getWeatherIcon(weather) {
+  if (weather === CLOUDY) return CloudyIcon;
+  if (weather === RAINY) return RainyIcon;
+  if (weather === SNOWY) return SnowyIcon;
+  if (weather === SUNNY) return SunnyIcon;
+}
+
 class WeatherTile extends Component {
 
   render() {
+    var weatherIcon = getWeatherIcon(this.props.data.weather);
     return (
       <div>
-        <header>{this.props.day}</header>
-        <img className="weather-icon" src={CloudyIcon} alt="cloudyIcon" />
+        <header>{this.props.data.day}</header>
+        <img className="weather-icon" src={weatherIcon} alt={this.props.data.day} />
         <div>
-          78{"\xB0"} 60{"\xB0"}
+          {this.props.data.maxTemp}{"\xB0"} {this.props.data.minTemp}{"\xB0"}
         </div>
       </div>
     );
