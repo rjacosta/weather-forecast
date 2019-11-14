@@ -48,6 +48,7 @@ class App extends Component {
           // dt is in unix time, need to convert to js
           point.jsDay = new Date(point.dt * 1000).getDay();
         });
+
         var filteredWeatherData = [];
         Object.keys(weekDays).forEach(day => {
           var filteredPoints = weatherPoints.filter(
@@ -60,7 +61,7 @@ class App extends Component {
           );
           filteredWeatherData.push({
             day: parseInt(day),
-            weather: aggregatedWeatherDataPoint.weatherType,
+            weather: aggregatedWeatherDataPoint.weather,
             maxTemp: aggregatedWeatherDataPoint.maxTemp,
             minTemp: aggregatedWeatherDataPoint.minTemp
           });
@@ -75,7 +76,7 @@ class App extends Component {
     var aggregatedWeatherDataPoint = {
       maxTemp: Number.MIN_SAFE_INTEGER,
       minTemp: Number.MAX_SAFE_INTEGER,
-      weatherType: ""
+      weather: ""
     };
     var weatherCounter = {
       Clear: 0,
@@ -94,7 +95,8 @@ class App extends Component {
       if (point.main.temp_min < aggregatedWeatherDataPoint.minTemp)
         aggregatedWeatherDataPoint.minTemp = point.main.temp_min;
     });
-    aggregatedWeatherDataPoint.weatherType = Object.keys(
+    
+    aggregatedWeatherDataPoint.weather = Object.keys(
       weatherCounter
     ).reduce((a, b) => (weatherCounter[a] > weatherCounter[b] ? a : b));
     aggregatedWeatherDataPoint.maxTemp = Math.round(
@@ -130,6 +132,7 @@ class App extends Component {
         data => data.day === currentDay
       );
 
+      // order the weather data so that today's week day is first
       weatherData = weatherData
         .slice(currentDayIndex)
         .concat(weatherData.slice(0, currentDayIndex));
