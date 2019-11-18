@@ -1,11 +1,8 @@
-import React, { Component } from "react";
+import React, { useState, useEffect } from "react";
 import "./style.css";
 import WeatherTile from "./components/WeatherTile";
 import * as Constants from "./constants/index";
 import { Spinner } from "spin.js";
-
-var target = document.getElementById("root");
-var spinner = new Spinner(Constants.SPINNER_PARAMS).spin();
 
 var apiBaseURL = "http://api.openweathermap.org/data/2.5/forecast";
 var apiKey = "dad308e1e9508fb8704e0e28fd983111";
@@ -21,28 +18,21 @@ var weekDays = {
   6: "Sat"
 };
 
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      weatherData: null
-    };
-    this.getWeatherData = this.getWeatherData.bind(this);
-  }
+function App() {
+  const [weatherData, setWeatherData] = useState(null);
 
-  componentDidMount() {
-    target.appendChild(spinner.el);
-    this.getWeatherData();
-    setInterval(this.getWeatherData, 10000);
-  }
+  function getWeatherData(spinner) {
+    spinner.spin();
 
-  getWeatherData() {
     fetch(apiBaseURL + "?id=" + cityKey + "&APPID=" + apiKey)
       .then(response => {
         spinner.stop();
         return response.json();
       })
       .then(weatherData => {
+        if (weatherData.cod > 400) {
+          return;
+        }
         var weatherPoints = weatherData.list;
         weatherPoints.forEach(point => {
           // dt is in unix time, need to convert to js
@@ -56,7 +46,7 @@ class App extends Component {
           );
           if (filteredPoints.length === 0) return;
 
-          var aggregatedWeatherDataPoint = this.getAggregatedWeatherDataPoint(
+          var aggregatedWeatherDataPoint = getAggregatedWeatherDataPoint(
             filteredPoints
           );
           filteredWeatherData.push({
@@ -66,13 +56,11 @@ class App extends Component {
             minTemp: aggregatedWeatherDataPoint.minTemp
           });
         });
-        this.setState({
-          weatherData: filteredWeatherData
-        });
+        setWeatherData(filteredWeatherData);
       });
   }
 
-  getAggregatedWeatherDataPoint(filteredPoints) {
+  function getAggregatedWeatherDataPoint(filteredPoints) {
     var aggregatedWeatherDataPoint = {
       maxTemp: Number.MIN_SAFE_INTEGER,
       minTemp: Number.MAX_SAFE_INTEGER,
@@ -95,40 +83,28 @@ class App extends Component {
       if (point.main.temp_min < aggregatedWeatherDataPoint.minTemp)
         aggregatedWeatherDataPoint.minTemp = point.main.temp_min;
     });
-    
+
     aggregatedWeatherDataPoint.weather = Object.keys(
       weatherCounter
     ).reduce((a, b) => (weatherCounter[a] > weatherCounter[b] ? a : b));
     aggregatedWeatherDataPoint.maxTemp = Math.round(
-      this.kelvinToFahrenheit(aggregatedWeatherDataPoint.maxTemp)
+      kelvinToFahrenheit(aggregatedWeatherDataPoint.maxTemp)
     );
     aggregatedWeatherDataPoint.minTemp = Math.round(
-      this.kelvinToFahrenheit(aggregatedWeatherDataPoint.minTemp)
+      kelvinToFahrenheit(aggregatedWeatherDataPoint.minTemp)
     );
     return aggregatedWeatherDataPoint;
   }
 
-  kelvinToFahrenheit(k) {
+  function kelvinToFahrenheit(k) {
     return ((k - 273.15) * 9) / 5 + 32;
   }
 
-  render() {
-    var weatherTiles = this.createWeatherTiles(this.state.weatherData);
-    return (
-      <div className="Background">
-        <div className="weather-forecast">
-          <ul className="list-style">{weatherTiles}</ul>
-        </div>
-        <footer></footer>
-      </div>
-    );
-  }
-
-  createWeatherTiles(weatherData) {
+  function createWeatherTiles(weatherData) {
     if (weatherData === null) return null;
     var currentDay = new Date().getDay();
     if (currentDay !== 0) {
-      var currentDayIndex = this.state.weatherData.findIndex(
+      var currentDayIndex = weatherData.findIndex(
         data => data.day === currentDay
       );
 
@@ -147,6 +123,30 @@ class App extends Component {
       );
     });
   }
+
+  var target = document.getElementById("root");
+  var spinner = new Spinner(Constants.SPINNER_PARAMS).spin();
+
+  target.appendChild(spinner.el);
+  getWeatherData(spinner);
+  useEffect(() => {
+    const intervalId = setInterval(() => getWeatherData(spinner), 3600000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    spinner.stop();
+  }, [weatherData]);
+  var weatherTiles = createWeatherTiles(weatherData);
+
+  return (
+    <div className="Background">
+      <div className="weather-forecast">
+        <ul className="list-style">{weatherTiles}</ul>
+      </div>
+      <footer></footer>
+    </div>
+  );
 }
 
 export default App;
