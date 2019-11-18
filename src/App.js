@@ -5,7 +5,7 @@ import * as Constants from "./constants/index";
 import { Spinner } from "spin.js";
 
 var apiBaseURL = "http://api.openweathermap.org/data/2.5/forecast";
-var apiKey = "dad308e1e9508fb8704e0e28fd983111";
+var apiKey = "13f9fcd287e11aa7c31ec31014a6d8cd";
 var cityKey = "5345679"; // Key for El Dorado Hills
 
 var weekDays = {
