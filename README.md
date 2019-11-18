@@ -1,3 +1,9 @@
+This is a work in progress!
+
+### Things to potentially implement:
+- refresh button
+- in-depth analysis of a day upon clicking it
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
